@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin2Earn | Win Hypa Points</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #e17055;
+            --radius: 12px;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0 15px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            background-color: var(--light);
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        .points-display {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background-color: white;
+            border-radius: var(--radius);
+            padding: 10px;
+            margin: 15px 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 70px;
+            z-index: 99;
+        }
+
+        .nav-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            border-radius: var(--radius);
+            font-weight: 500;
+            color: var(--dark);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            flex: 1;
+            display: none;
+            padding-bottom: 80px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Spin Section */
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #ff7675 0deg 60deg,
+                #74b9ff 60deg 120deg,
+                #55efc4 120deg 180deg,
+                #ffeaa7 180deg 240deg,
+                #a29bfe 240deg 300deg,
+                #fd79a8 300deg 360deg
+            );
+            position: relative;
+            transition: transform 3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            box-shadow: var(--shadow);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background-color: var(--accent);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 10;
+        }
+
+        .spin-btn {
+            display: block;
+            width: 80%;
+            margin: 20px auto;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .spin-btn:active {
+            transform: scale(0.98);
+        }
+
+        .spin-btn:disabled {
+            background: #b2bec3;
+            cursor: not-allowed;
+        }
+
+        .spin-info {
+            text-align: center;
+            margin: 15px 0;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .reward-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            text-align: center;
+            display: none;
+        }
+
+        .reward-popup.show {
+            display: block;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .reward-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 15px 0;
+        }
+
+        .reward-text {
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        /* Referral Section */
+        .referral-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .referral-code {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px;
+            border-radius: var(--radius);
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin: 15px 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: var(--dark);
+        }
+
+        .leaderboard {
+            margin-top: 25px;
+        }
+
+        .leaderboard-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: white;
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .leaderboard-rank {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .leaderboard-points {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        /* Wallet Section */
+        .balance-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .balance-title {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .withdrawal-options {
+            margin-top: 25px;
+        }
+
+        .withdrawal-option {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .option-title {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Ads */
+        .ad-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .banner-ad {
+            width: 100%;
+            height: 90px;
+            background: #e0e0e0;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+            font-size: 0.9rem;
+            margin: 0 auto;
+        }
+
+        .interstitial-ad {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .interstitial-ad.show {
+            display: flex;
+        }
+
+        .ad-content {
+            background: white;
+            width: 90%;
+            max-width: 300px;
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .ad-close {
+            margin-top: 15px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #777;
+            font-size: 0.8rem;
+            margin-top: auto;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(108, 92, 231, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Login Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--dark);
+        }
+
+        .login-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .login-btn {
+            padding: 15px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-email {
+            background: var(--primary);
+            color: white;
+        }
+
+        .login-google {
+            background: white;
+            color: var(--dark);
+            border: 1px solid #ddd;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            z-index: 4000;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.show {
+            display: flex;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Profile Menu */
+        .profile-menu {
+            position: relative;
+        }
+
+        .profile-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 10px 0;
+            min-width: 150px;
+            display: none;
+            z-index: 100;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dropdown-item:hover {
+            background: #f5f5f5;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            .wheel-container {
+                width: 280px;
+                height: 280px;
+            }
+            
+            .reward-popup {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Welcome to Spin2Earn</h2>
+            <p style="text-align: center; margin-bottom: 20px;">Login to start earning Hypa Points!</p>
+            
+            <div class="form-group">
+                <input type="email" class="form-control" id="loginEmail" placeholder="Email" value="demo@spin2earn.com">
+            </div>
+            <div class="form-group">
+                <input type="password" class="form-control" id="loginPassword" placeholder="Password" value="password">
+            </div>
+            
+            <div class="login-options">
+                <button class="login-btn login-email" id="emailLoginBtn">
+                    <i class="fas fa-envelope"></i> Login with Email
+                </button>
+                <button class="login-btn login-google" id="googleLoginBtn">
+                    <i class="fab fa-google"></i> Login with Google
+                </button>
+            </div>
+            
+            <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                Don't have an account? <span id="showRegister" style="color: var(--primary); cursor: pointer;">Register</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <h2 class="modal-title">Create Account</h2>
+            
+            <div class="form-group">
+                <input type="text" class="form-control" id="registerName" placeholder="Full Name">
+            </div>
+            <div class="form-group">
+                <input type="email" class="form-control" id="registerEmail" placeholder="Email">
+            </div>
+            <div class="form-group">
+                <input type="password" class="form-control" id="registerPassword" placeholder="Password">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="referralInput" placeholder="Referral Code (Optional)">
+            </div>
+            
+            <button class="btn btn-primary btn-block" id="registerBtn">
+                Create Account
+            </button>
+            
+            <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                Already have an account? <span id="showLogin" style="color: var(--primary); cursor: pointer;">Login</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div class="container" id="appContainer" style="display: none;">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-gem"></i>
+                <span>Spin2Earn</span>
+            </div>
+            <div class="points-display">
+                <i class="fas fa-coins"></i>
+                <span id="userPoints">0</span> Hypa Points
+            </div>
+            <div class="profile-menu">
+                <button class="profile-btn" id="profileBtn">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <div class="dropdown-item" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="spin">
+                <i class="fas fa-sync-alt"></i> Spin
+            </div>
+            <div class="nav-tab" data-tab="referral">
+                <i class="fas fa-users"></i> Referral
+            </div>
+            <div class="nav-tab" data-tab="wallet">
+                <i class="fas fa-wallet"></i> Wallet
+            </div>
+        </div>
+
+        <!-- Spin Tab -->
+        <div class="tab-content active" id="spin-tab">
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <div class="wheel" id="wheel"></div>
+            </div>
+            
+            <button class="spin-btn" id="spinButton">
+                <i class="fas fa-play-circle"></i> Spin Now
+            </button>
+            
+            <div class="spin-info">
+                Next spin available in: <span id="countdown">5:00</span>
+            </div>
+            
+            <div class="ad-container">
+                <div class="banner-ad">
+                    AdMob Banner Ad Placeholder
+                </div>
+            </div>
+        </div>
+
+        <!-- Referral Tab -->
+        <div class="tab-content" id="referral-tab">
+            <div class="referral-card">
+                <h3>Invite Friends & Earn</h3>
+                <p>Share your referral code and earn 100 Hypa Points for each friend who joins!</p>
+                
+                <div class="referral-code" id="referralCode">SPIN2EARN-XYZ</div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="copyCodeBtn">
+                        <i class="fas fa-copy"></i> Copy Code
+                    </button>
+                    <button class="btn btn-success" id="shareBtn">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+            </div>
+            
+            <div class="leaderboard">
+                <h3 class="leaderboard-title">Top Referrers</h3>
+                <div id="leaderboardList">
+                    <!-- Leaderboard items will be dynamically added -->
+                </div>
+            </div>
+            
+            <div class="ad-container">
+                <div class="banner-ad">
+                    AdMob Banner Ad Placeholder
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallet Tab -->
+        <div class="tab-content" id="wallet-tab">
+            <div class="balance-card">
+                <div class="balance-title">Total Balance</div>
+                <div class="balance-amount" id="totalBalance">0 Hypa Points</div>
+                <div class="balance-title">Withdrawable: <span id="withdrawableBalance">0 Hypa Points</span></div>
+            </div>
+            
+            <div class="withdrawal-options">
+                <div class="withdrawal-option">
+                    <h3 class="option-title">
+                        <i class="fas fa-money-bill-wave"></i> UPI Withdrawal
+                    </h3>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="upiId" placeholder="Enter UPI ID">
+                    </div>
+                    <div class="form-group">
+                        <input type="number" class="form-control" id="withdrawalAmount" placeholder="Amount in Hypa Points" min="100">
+                    </div>
+                    <button class="btn btn-primary btn-block" id="requestWithdrawalBtn">
+                        Request Withdrawal
+                    </button>
+                </div>
+                
+                <div class="withdrawal-option">
+                    <h3 class="option-title">
+                        <i class="fab fa-google-play"></i> Google Play Codes
+                    </h3>
+                    <div class="form-group">
+                        <input type="number" class="form-control" id="redeemAmount" placeholder="Amount in Hypa Points" min="500">
+                    </div>
+                    <button class="btn btn-warning btn-block" id="requestRedeemBtn">
+                        Request Redeem Code
+                    </button>
+                </div>
+            </div>
+            
+            <div class="ad-container">
+                <div class="banner-ad">
+                    AdMob Banner Ad Placeholder
+                </div>
+            </div>
+        </div>
+
+        <!-- Reward Popup -->
+        <div class="reward-popup" id="rewardPopup">
+            <i class="fas fa-gift" style="font-size: 3rem; color: var(--accent);"></i>
+            <h2>Congratulations!</h2>
+            <div class="reward-amount" id="rewardAmount">0 Hypa Points</div>
+            <p class="reward-text">You've won the spin reward!</p>
+            <button class="btn btn-primary" id="closeRewardBtn">Claim Reward</button>
+        </div>
+
+        <!-- Interstitial Ad -->
+        <div class="interstitial-ad" id="interstitialAd">
+            <div class="ad-content">
+                <h3>Watch Ad to Spin</h3>
+                <p>Please watch this ad to continue spinning the wheel.</p>
+                <div class="banner-ad" style="height: 150px; margin: 15px 0;">
+                    AdMob Interstitial Ad Placeholder
+                </div>
+                <button class="btn btn-primary" id="watchAdBtn">Watch Ad</button>
+                <button class="ad-close" id="closeAdBtn">Close Ad</button>
+            </div>
+        </div>
+
+        <!-- Notification -->
+        <div class="notification" id="notification">
+            <i class="fas fa-check-circle"></i>
+            <span id="notificationText">Operation completed successfully!</span>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing your request...</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>2025 Spin2Earn | All Rights Reserved</p>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        let userPoints = 0;
+        let spinCooldown = 300; // 5 minutes in seconds
+        let spinTimer = null;
+        let isSpinning = false;
+        let currentUser = null;
+        let userData = {};
+
+        // DOM Elements
+        const loginModal = document.getElementById('loginModal');
+        const registerModal = document.getElementById('registerModal');
+        const appContainer = document.getElementById('appContainer');
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const spinButton = document.getElementById('spinButton');
+        const wheel = document.getElementById('wheel');
+        const countdownElement = document.getElementById('countdown');
+        const rewardPopup = document.getElementById('rewardPopup');
+        const rewardAmount = document.getElementById('rewardAmount');
+        const closeRewardBtn = document.getElementById('closeRewardBtn');
+        const userPointsElement = document.getElementById('userPoints');
+        const referralCodeElement = document.getElementById('referralCode');
+        const copyCodeBtn = document.getElementById('copyCodeBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const leaderboardList = document.getElementById('leaderboardList');
+        const totalBalanceElement = document.getElementById('totalBalance');
+        const withdrawableBalanceElement = document.getElementById('withdrawableBalance');
+        const requestWithdrawalBtn = document.getElementById('requestWithdrawalBtn');
+        const requestRedeemBtn = document.getElementById('requestRedeemBtn');
+        const interstitialAd = document.getElementById('interstitialAd');
+        const watchAdBtn = document.getElementById('watchAdBtn');
+        const closeAdBtn = document.getElementById('closeAdBtn');
+        const loading = document.getElementById('loading');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        const profileBtn = document.getElementById('profileBtn');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const emailLoginBtn = document.getElementById('emailLoginBtn');
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const showRegister = document.getElementById('showRegister');
+        const showLogin = document.getElementById('showLogin');
+        const registerBtn = document.getElementById('registerBtn');
+
+        // Initialize App
+        function initApp() {
+            // Check if user is logged in (simulated)
+            const savedUser = localStorage.getItem('spin2earn_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                loginModal.classList.remove('show');
+                appContainer.style.display = 'flex';
+                loadUserData();
+                loadLeaderboard();
+                startSpinCooldown();
+            } else {
+                loginModal.classList.add('show');
+                appContainer.style.display = 'none';
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Navigation tabs
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    navTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Show corresponding content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabId}-tab`) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Spin button
+            spinButton.addEventListener('click', startSpin);
+            
+            // Close reward popup
+            closeRewardBtn.addEventListener('click', () => {
+                rewardPopup.classList.remove('show');
+            });
+            
+            // Copy referral code
+            copyCodeBtn.addEventListener('click', copyReferralCode);
+            
+            // Share referral
+            shareBtn.addEventListener('click', shareReferral);
+            
+            // Request withdrawal
+            requestWithdrawalBtn.addEventListener('click', requestWithdrawal);
+            
+            // Request redeem code
+            requestRedeemBtn.addEventListener('click', requestRedeemCode);
+            
+            // Watch ad button
+            watchAdBtn.addEventListener('click', () => {
+                interstitialAd.classList.remove('show');
+                performSpin();
+            });
+            
+            // Close interstitial ad
+            closeAdBtn.addEventListener('click', () => {
+                interstitialAd.classList.remove('show');
+            });
+            
+            // Profile menu
+            profileBtn.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('show');
+            });
+            
+            // Logout
+            logoutBtn.addEventListener('click', logout);
+            
+            // Email login
+            emailLoginBtn.addEventListener('click', emailLogin);
+            
+            // Google login
+            googleLoginBtn.addEventListener('click', googleLogin);
+            
+            // Show register modal
+            showRegister.addEventListener('click', (e) => {
+                loginModal.classList.remove('show');
+                registerModal.classList.add('show');
+            });
+            
+            // Show login modal
+            showLogin.addEventListener('click', (e) => {
+                registerModal.classList.remove('show');
+                loginModal.classList.add('show');
+            });
+            
+            // Register
+            registerBtn.addEventListener('click', register);
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
+        }
+
+        // Start spin cooldown timer
+        function startSpinCooldown() {
+            // Update countdown every second
+            clearInterval(spinTimer);
+            spinTimer = setInterval(() => {
+                if (spinCooldown > 0) {
+                    spinCooldown--;
+                    updateCountdownDisplay();
+                    
+                    if (spinCooldown === 0) {
+                        spinButton.disabled = false;
+                        spinButton.innerHTML = '<i class="fas fa-play-circle"></i> Spin Now';
+                    }
+                }
+            }, 1000);
+        }
+
+        // Update countdown display
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(spinCooldown / 60);
+            const seconds = spinCooldown % 60;
+            countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Start spin process
+        function startSpin() {
+            if (isSpinning || spinCooldown > 0) return;
+            
+            // Show interstitial ad
+            interstitialAd.classList.add('show');
+        }
+
+        // Perform the actual spin
+        function performSpin() {
+            isSpinning = true;
+            spinButton.disabled = true;
+            
+            // Reset wheel position
+            wheel.style.transform = 'rotate(0deg)';
+            
+            // Generate random spin result (10-100 points)
+            const reward = Math.floor(Math.random() * 91) + 10;
+            
+            // Animate the wheel
+            const spinDegrees = 1080 + Math.floor(Math.random() * 360); // 3 full rotations + random
+            wheel.style.transform = `rotate(${spinDegrees}deg)`;
+            
+            // Show reward after animation
+            setTimeout(() => {
+                showReward(reward);
+                updateUserPoints(reward);
+                
+                // Reset spin cooldown
+                spinCooldown = 300; // 5 minutes
+                spinButton.disabled = true;
+                isSpinning = false;
+                
+                // Update user data in localStorage
+                if (currentUser) {
+                    const users = JSON.parse(localStorage.getItem('spin2earn_users') || '{}');
+                    if (users[currentUser.id]) {
+                        users[currentUser.id].points = userPoints;
+                        users[currentUser.id].lastSpin = Date.now();
+                        localStorage.setItem('spin2earn_users', JSON.stringify(users));
+                    }
+                }
+                
+                showNotification(`You earned ${reward} Hypa Points!`);
+            }, 3000);
+        }
+
+        // Show reward popup
+        function showReward(amount) {
+            rewardAmount.textContent = `${amount} Hypa Points`;
+            rewardPopup.classList.add('show');
+        }
+
+        // Update user points
+        function updateUserPoints(amount) {
+            userPoints += amount;
+            userPointsElement.textContent = userPoints;
+            totalBalanceElement.textContent = `${userPoints} Hypa Points`;
+            withdrawableBalanceElement.textContent = `${userPoints} Hypa Points`;
+        }
+
+        // Copy referral code to clipboard
+        function copyReferralCode() {
+            const code = referralCodeElement.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showNotification('Referral code copied to clipboard!');
+            });
+        }
+
+        // Share referral via WhatsApp/Telegram
+        function shareReferral() {
+            const code = referralCodeElement.textContent;
+            const message = `Join Spin2Earn and earn Hypa Points! Use my referral code: ${code}`;
+            
+            // Use Web Share API if available
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Spin2Earn',
+                    text: message,
+                    url: window.location.href,
+                })
+                .catch((error) => console.log('Error sharing:', error));
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(message).then(() => {
+                    showNotification('Referral message copied to clipboard!');
+                });
+            }
+        }
+
+        // Load user data from localStorage
+        function loadUserData() {
+            if (!currentUser) return;
+            
+            const users = JSON.parse(localStorage.getItem('spin2earn_users') || '{}');
+            const userData = users[currentUser.id];
+            
+            if (userData) {
+                userPoints = userData.points || 0;
+                userPointsElement.textContent = userPoints;
+                totalBalanceElement.textContent = `${userPoints} Hypa Points`;
+                withdrawableBalanceElement.textContent = `${userPoints} Hypa Points`;
+                
+                // Set referral code
+                if (userData.referralCode) {
+                    referralCodeElement.textContent = userData.referralCode;
+                }
+                
+                // Check if user can spin
+                const lastSpin = userData.lastSpin || 0;
+                const now = Date.now();
+                const timeSinceLastSpin = (now - lastSpin) / 1000; // in seconds
+                
+                if (timeSinceLastSpin < 300) {
+                    spinCooldown = 300 - Math.floor(timeSinceLastSpin);
+                    spinButton.disabled = true;
+                } else {
+                    spinCooldown = 0;
+                    spinButton.disabled = false;
+                }
+                
+                updateCountdownDisplay();
+            }
+        }
+
+        // Load leaderboard from localStorage
+        function loadLeaderboard() {
+            const users = JSON.parse(localStorage.getItem('spin2earn_users') || '{}');
+            const leaderboardData = [];
+            
+            Object.keys(users).forEach(key => {
+                leaderboardData.push({
+                    name: users[key].name || 'Anonymous',
+                    points: users[key].points || 0
+                });
+            });
+            
+            // Sort by points (descending)
+            leaderboardData.sort((a, b) => b.points - a.points);
+            
+            // Clear existing leaderboard
+            leaderboardList.innerHTML = '';
+            
+            // Add leaderboard items
+            leaderboardData.forEach((user, index) => {
+                const rank = index + 1;
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                item.innerHTML = `
+                    <div>
+                        <span class="leaderboard-rank">#${rank}</span> ${user.name}
+                    </div>
+                    <div class="leaderboard-points">${user.points} pts</div>
+                `;
+                leaderboardList.appendChild(item);
+            });
+        }
+
+        // Request withdrawal
+        function requestWithdrawal() {
+            const upiId = document.getElementById('upiId').value.trim();
+            const amount = parseInt(document.getElementById('withdrawalAmount').value);
+            
+            if (!upiId) {
+                showNotification('Please enter your UPI ID', 'error');
+                return;
+            }
+            
+            if (!amount || amount < 100) {
+                showNotification('Minimum withdrawal amount is 100 Hypa Points', 'error');
+                return;
+            }
+            
+            if (amount > userPoints) {
+                showNotification('Insufficient balance', 'error');
+                return;
+            }
+            
+            // Show loading
+            loading.classList.add('show');
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Update user points
+                userPoints -= amount;
+                userPointsElement.textContent = userPoints;
+                totalBalanceElement.textContent = `${userPoints} Hypa Points`;
+                withdrawableBalanceElement.textContent = `${userPoints} Hypa Points`;
+                
+                // Update localStorage
+                if (currentUser) {
+                    const users = JSON.parse(localStorage.getItem('spin2earn_users') || '{}');
+                    if (users[currentUser.id]) {
+                        users[currentUser.id].points = userPoints;
+                        localStorage.setItem('spin2earn_users', JSON.stringify(users));
+                    }
+                    
+                    // Add withdrawal request
+                    const withdrawals = JSON.parse(localStorage.getItem('spin2earn_withdrawals') || '[]');
+                    withdrawals.push({
+                        userId: currentUser.id,
+                        upiId: upiId,
+                        amount: amount,
+                        status: 'pending',
+                        timestamp: Date.now()
+                    });
+                    localStorage.setItem('spin2earn_withdrawals', JSON.stringify(withdrawals));
+                }
+                
+                // Reset form
+                document.getElementById('upiId').value = '';
+                document.getElementById('withdrawalAmount').value = '';
+                
+                // Hide loading
+                loading.classList.remove('show');
+                
+                // Show success message
+                showNotification(`Withdrawal request for ${amount} Hypa Points submitted successfully!`);
+            }, 1500);
+        }
+
+        // Request redeem code
+        function requestRedeemCode() {
+            const amount = parseInt(document.getElementById('redeemAmount').value);
+            
+            if (!amount || amount < 500) {
+                showNotification('Minimum redeem amount is 500 Hypa Points', 'error');
+                return;
+            }
+            
+            if (amount > userPoints) {
+                showNotification('Insufficient balance', 'error');
+                return;
+            }
+            
+            // Show loading
+            loading.classList.add('show');
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Update user points
+                userPoints -= amount;
+                userPointsElement.textContent = userPoints;
+                totalBalanceElement.textContent = `${userPoints} Hypa Points`;
+                withdrawableBalanceElement.textContent = `${userPoints} Hypa Points`;
+                
+                // Update localStorage
+                if (currentUser) {
+                    const users = JSON.parse(localStorage.getItem('spin2earn_users') || '{}');
+                    if (users[currentUser.id]) {
+                        users[currentUser.id].points = userPoints;
+                        localStorage.setItem('spin2earn_users', JSON.stringify(users));
+                    }
+                    
+                    // Add redeem request
+                    const redeems = JSON.parse(localStorage.getItem('spin2earn_redeems') || '[]');
+                    redeems.push({
+                        userId: currentUser.id,
+                        amount: amount,
+                        status: 'pending',
+                        timestamp: Date.now()
+                    });
+                    localStorage.setItem('spin2earn_redeems', JSON.stringify(redeems));
+                }
+                
+                // Reset form
+                document.getElementById('redeemAmount').value = '';
+                
+                // Hide loading
+                loading.classList.remove('show');
+                
+                // Show success message
+                showNotification(`Redeem code request for ${amount} Hypa Points submitted successfully!`);
+            }, 1500);
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            notificationText.textContent = message;
+            
+            if (type === 'error') {
+                notification.style.background = 'var(--danger)';
+            } else {
+                notification.style.background = 'var(--success)';
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Email login
+        function emailLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showNotification('Please enter email and password', 'error');
+                return;
+            }
+            
+            loading.classList.add('show');
+            
+            // Simulate login
+            setTimeout(() => {
+                loading.classList.remove('show');
+                
+                // Create a mock user
+                const mockUser = {
+                    id: 'user-' + Math.random().toString(36).substring(2),
+                    displayName: 'Demo User',
+                    email: email
+                };
+                
+                // Check if user exists in localStorage
+                const users = JSON.parse(localStorage.getItem('spin2earn_users') || '{}');
+                let userExists = false;
+                
+                for (const key in users) {
+                    if (users[key].email === email) {
+                        mockUser.id = key;
+                        mockUser.displayName = users[key].name;
+                        userExists = true;
+                        break;
+                    }
+                }
+                
+                // If user doesn't exist, create one
+                if (!userExists) {
+                    users[mockUser.id] = {
+                        name: 'Demo User',
+                        email: email,
+                        points: 100,
+                        referralCode: 'SPIN2EARN-' + Math.random().toString(36).substring(2, 6).toUpperCase(),
+                        createdAt: Date.now(),
+                        lastSpin: 0
+                    };
+                    localStorage.setItem('spin2earn_users', JSON.stringify(users));
+                }
+                
+                // Save current user
+                currentUser = mockUser;
+                localStorage.setItem('spin2earn_user', JSON.stringify(mockUser));
+                
+                // Show app
+                loginModal.classList.remove('show');
+                appContainer.style.display = 'flex';
+                loadUserData();
+                loadLeaderboard();
+                startSpinCooldown();
+                
+                showNotification('Login successful!');
+            }, 1000);
+        }
+
+        // Google login
+        function googleLogin() {
+            loading.classList.add('show');
+            
+            setTimeout(() => {
+                loading.classList.remove('show');
+                
+                // Create a mock user
+                const mockUser = {
+                    id: 'google-' + Math.random().toString(36).substring(2),
+                    displayName: 'Google User',
+                    email: 'googleuser@example.com'
+                };
+                
+                // Check if user exists in localStorage
+                const users = JSON.parse(localStorage.getItem('spin2earn_users') || '{}');
+                let userExists = false;
+                
+                for (const key in users) {
+                    if (users[key].email === mockUser.email) {
+                        mockUser.id = key;
+                        mockUser.displayName = users[key].name;
+                        userExists = true;
+                        break;
+                    }
+                }
+                
+                // If user doesn't exist, create one
+                if (!userExists) {
+                    users[mockUser.id] = {
+                        name: 'Google User',
+                        email: mockUser.email,
+                        points: 100,
+                        referralCode: 'SPIN2EARN-' + Math.random().toString(36).substring(2, 6).toUpperCase(),
+                        createdAt: Date.now(),
+                        lastSpin: 0
+                    };
+                    localStorage.setItem('spin2earn_users', JSON.stringify(users));
+                }
+                
+                // Save current user
+                currentUser = mockUser;
+                localStorage.setItem('spin2earn_user', JSON.stringify(mockUser));
+                
+                // Show app
+                loginModal.classList.remove('show');
+                appContainer.style.display = 'flex';
+                loadUserData();
+                loadLeaderboard();
+                startSpinCooldown();
+                
+                showNotification('Google login successful!');
+            }, 1000);
+        }
+
+        // Register
+        function register() {
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const referralCode = document.getElementById('referralInput').value.trim();
+            
+            if (!name || !email || !password) {
+                showNotification('Please fill all fields', 'error');
+                return;
+            }
+            
+            loading.classList.add('show');
+            
+            // Simulate registration
+            setTimeout(() => {
+                loading.classList.remove('show');
+                
+                // Create a mock user
+                const mockUser = {
+                    id: 'user-' + Math.random().toString(36).substring(2),
+                    displayName: name,
+                    email: email
+                };
+                
+                // Initialize user data with referral bonus if applicable
+                const initialPoints = referralCode ? 100 : 0;
+                userPoints = initialPoints;
+                
+                // Save user to localStorage
+                const users = JSON.parse(localStorage.getItem('spin2earn_users') || '{}');
+                const userReferralCode = 'SPIN2EARN-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+                
+                users[mockUser.id] = {
+                    name: name,
+                    email: email,
+                    points: initialPoints,
+                    referralCode: userReferralCode,
+                    createdAt: Date.now(),
+                    lastSpin: 0,
+                    referredBy: referralCode || null
+                };
+                localStorage.setItem('spin2earn_users', JSON.stringify(users));
+                
+                // Save current user
+                currentUser = mockUser;
+                localStorage.setItem('spin2earn_user', JSON.stringify(mockUser));
+                
+                // Show app
+                registerModal.classList.remove('show');
+                appContainer.style.display = 'flex';
+                referralCodeElement.textContent = userReferralCode;
+                loadUserData();
+                loadLeaderboard();
+                startSpinCooldown();
+                
+                showNotification('Registration successful! ' + (referralCode ? '100 bonus points added!' : ''));
+            }, 1000);
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('spin2earn_user');
+            currentUser = null;
+            userData = {};
+            userPoints = 0;
+            spinCooldown = 300;
+            
+            loginModal.classList.add('show');
+            appContainer.style.display = 'none';
+            
+            showNotification('Logged out successfully');
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
