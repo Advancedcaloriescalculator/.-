@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin2Earn - Win Hypa Points</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics-compat.js"></script>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --dark: #2d3436;
+            --light: #f5f6fa;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #e17055;
+            --gradient: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            --neon-glow: 0 0 10px rgba(108, 92, 231, 0.7);
+            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding-top: 60px;
+            padding-bottom: 80px;
+        }
+        
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .logo {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            letter-spacing: 1px;
+        }
+        
+        .tagline {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+        
+        .loading-bar {
+            width: 220px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            width: 0%;
+            background: white;
+            border-radius: 6px;
+            animation: loading 2s ease-in-out forwards;
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            height: 60px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            height: 100%;
+        }
+        
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .app-logo {
+            font-size: 1.6rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .points-display {
+            background: var(--gradient);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            box-shadow: var(--neon-glow);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .points-icon {
+            font-size: 0.8rem;
+        }
+        
+        .gift-box {
+            font-size: 1.4rem;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+        
+        .gift-box:hover {
+            transform: scale(1.1);
+        }
+        
+        .gift-box.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .gift-box.disabled:hover {
+            transform: none;
+        }
+        
+        .gift-timer {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.6rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Spin Section */
+        .spin-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            margin-top: 10px;
+        }
+        
+        .wheel-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+        }
+        
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                #ff7675 0deg 60deg,
+                #74b9ff 60deg 120deg,
+                #55efc4 120deg 180deg,
+                #ffeaa7 180deg 240deg,
+                #a29bfe 240deg 300deg,
+                #fd79a8 300deg 360deg
+            );
+            position: relative;
+            transition: transform 3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .wheel-spinning {
+            animation: spin 3s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(1080deg); }
+        }
+        
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 3;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+        }
+        
+        .spin-btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 14px 45px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: var(--neon-glow);
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+        
+        .spin-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(108, 92, 231, 0.5);
+        }
+        
+        .spin-btn:active {
+            transform: translateY(-2px);
+        }
+        
+        .spin-btn:disabled {
+            background: #b2bec3;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .ad-note {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .result-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            width: 90%;
+            max-width: 350px;
+        }
+        
+        .result-popup.show {
+            display: block;
+            animation: popIn 0.5s ease;
+        }
+        
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        
+        .result-title {
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .result-points {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--success);
+            margin: 15px 0;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .close-popup {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .close-popup:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        /* Referral Section */
+        .referral-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .referral-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .referral-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        
+        .referral-card p {
+            color: #636e72;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .referral-code {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            color: var(--primary);
+            border: 2px dashed var(--secondary);
+        }
+        
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        .copy-btn.copied {
+            background: var(--success);
+        }
+        
+        .leaderboard {
+            margin-top: 25px;
+        }
+        
+        .leaderboard-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+            font-weight: 700;
+        }
+        
+        .leaderboard-list {
+            list-style: none;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.3s ease;
+        }
+        
+        .leaderboard-item:hover {
+            background: rgba(108, 92, 231, 0.05);
+        }
+        
+        .leaderboard-item:nth-child(1) {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 4px solid gold;
+        }
+        
+        .leaderboard-item:nth-child(2) {
+            background: rgba(192, 192, 192, 0.1);
+            border-left: 4px solid silver;
+        }
+        
+        .leaderboard-item:nth-child(3) {
+            background: rgba(205, 127, 50, 0.1);
+            border-left: 4px solid #cd7f32;
+        }
+        
+        /* Wallet Section */
+        .wallet-balance {
+            background: var(--gradient);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .wallet-balance::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        }
+        
+        .balance-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+        
+        .redeem-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        .redeem-option {
+            background: white;
+            border-radius: 12px;
+            padding: 18px 12px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .redeem-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary);
+        }
+        
+        .redeem-option.selected {
+            border-color: var(--primary);
+            background: rgba(108, 92, 231, 0.05);
+        }
+        
+        .redeem-amount {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+        
+        .redeem-points {
+            font-size: 0.9rem;
+            color: var(--dark);
+            margin-top: 8px;
+        }
+        
+        .withdrawal-form {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            margin-top: 20px;
+        }
+        
+        .form-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+            font-weight: 700;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+            outline: none;
+        }
+        
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        .submit-btn:disabled {
+            background: #b2bec3;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: #777;
+            transition: all 0.3s ease;
+            padding: 5px 12px;
+            border-radius: 12px;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+            background: rgba(108, 92, 231, 0.1);
+        }
+        
+        .nav-icon {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+        
+        .nav-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #777;
+            font-size: 0.85rem;
+            margin-top: 40px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Login Modal */
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .login-modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .login-content {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 15px;
+            padding: 30px 25px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        
+        .close-login {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: #777;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .close-login:hover {
+            color: var(--danger);
+        }
+        
+        .login-title {
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .login-subtitle {
+            color: #636e72;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .google-login {
+            background: #4285f4;
+            color: white;
+        }
+        
+        .google-login:hover {
+            background: #3367d6;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(66, 133, 244, 0.4);
+        }
+        
+        .email-login {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .email-login:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+        
+        .guest-login {
+            background: transparent;
+            color: var(--dark);
+            border: 2px solid #ddd;
+        }
+        
+        .guest-login:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .login-footer {
+            margin-top: 20px;
+            color: #636e72;
+            font-size: 0.85rem;
+        }
+        
+        /* User Menu */
+        .user-menu {
+            position: relative;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 42px;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            width: 180px;
+            padding: 8px 0;
+            z-index: 101;
+            display: none;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .dropdown-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .dropdown-item:hover {
+            background: rgba(108, 92, 231, 0.1);
+        }
+        
+        .dropdown-divider {
+            height: 1px;
+            background: #eee;
+            margin: 6px 0;
+        }
+        
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 70px;
+            right: 15px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1001;
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+            max-width: 300px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left: 4px solid var(--success);
+        }
+        
+        .notification.error {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .notification-icon {
+            font-size: 1.2rem;
+        }
+        
+        .notification.success .notification-icon {
+            color: var(--success);
+        }
+        
+        .notification.error .notification-icon {
+            color: var(--danger);
+        }
+        
+        .notification-text {
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Styles */
+        @media (min-width: 768px) {
+            .wheel-container {
+                width: 320px;
+                height: 320px;
+            }
+            
+            .redeem-options {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .leaderboard-list {
+                max-width: 550px;
+                margin: 0 auto;
+            }
+            
+            .spin-container {
+                flex-direction: row;
+                justify-content: center;
+                gap: 50px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .wheel-container {
+                width: 350px;
+                height: 350px;
+            }
+            
+            .spin-btn {
+                padding: 16px 50px;
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <div class="logo">Spin2Earn</div>
+        <p class="tagline">Win Hypa Points & Redeem Rewards</p>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="login-modal">
+        <div class="login-content">
+            <button class="close-login" id="close-login">&times;</button>
+            <h2 class="login-title">Welcome to Spin2Earn</h2>
+            <p class="login-subtitle">Login to start earning Hypa Points</p>
+            <button class="login-btn google-login" id="google-login">
+                <i class="fab fa-google"></i> Continue with Google
+            </button>
+            <button class="login-btn email-login" id="email-login">
+                <i class="fas fa-envelope"></i> Continue with Email
+            </button>
+            <button class="login-btn guest-login" id="guest-login">
+                <i class="fas fa-user"></i> Continue as Guest
+            </button>
+            <p class="login-footer">By continuing, you agree to our Terms & Privacy Policy</p>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="notification-text">Operation completed successfully!</div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="app-title">
+                <span class="app-logo">🎰</span>
+                Spin2Earn
+            </div>
+            <div class="user-info">
+                <div class="points-display">
+                    <span class="points-icon">✦</span>
+                    <span id="points-display">0 Hypa Points</span>
+                </div>
+                <div class="gift-box disabled" id="gift-box">
+                    🎁
+                    <div class="gift-timer" id="gift-timer">24h</div>
+                </div>
+                <div class="user-menu">
+                    <div class="user-avatar" id="user-avatar">?</div>
+                    <div class="dropdown-menu" id="dropdown-menu">
+                        <div class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Profile</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <i class="fas fa-history"></i>
+                            <span>History</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <div class="dropdown-item" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Spin Section -->
+        <section id="spin-section" class="tab-content active">
+            <div class="spin-container">
+                <div class="wheel-container">
+                    <div class="wheel" id="wheel">
+                        <div class="wheel-center">SPIN</div>
+                    </div>
+                    <div class="wheel-pointer"></div>
+                </div>
+                <div class="spin-controls">
+                    <button class="spin-btn" id="spin-btn" disabled>Spin Now</button>
+                    <div class="ad-note">
+                        <i class="fas fa-ad"></i>
+                        Watch an ad to spin the wheel
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Referral Section -->
+        <section id="referral-section" class="tab-content">
+            <div class="referral-card">
+                <h2>Refer Friends & Earn</h2>
+                <p>Share your code and both you and your friend get 100 Hypa Points!</p>
+                <div class="referral-code" id="referral-code">SPIN2EARN</div>
+                <button class="copy-btn" id="copy-btn" disabled>Copy Referral Code</button>
+            </div>
+            
+            <div class="referral-card">
+                <h3>Your Referrals</h3>
+                <p>You have referred <strong id="referral-count">0</strong> friends</p>
+                <p>Total earned from referrals: <strong id="referral-earnings">0</strong> Hypa Points</p>
+            </div>
+            
+            <div class="leaderboard">
+                <h3 class="leaderboard-title">Top Referrers</h3>
+                <ul class="leaderboard-list">
+                    <li class="leaderboard-item">
+                        <span>1. User123</span>
+                        <span>25 referrals</span>
+                    </li>
+                    <li class="leaderboard-item">
+                        <span>2. SpinMaster</span>
+                        <span>18 referrals</span>
+                    </li>
+                    <li class="leaderboard-item">
+                        <span>3. LuckyWheel</span>
+                        <span>15 referrals</span>
+                    </li>
+                    <li class="leaderboard-item">
+                        <span>4. PointsKing</span>
+                        <span>12 referrals</span>
+                    </li>
+                    <li class="leaderboard-item">
+                        <span>5. RewardHunter</span>
+                        <span>10 referrals</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Wallet Section -->
+        <section id="wallet-section" class="tab-content">
+            <div class="wallet-balance">
+                <div class="balance-title">Your Hypa Points Balance</div>
+                <div class="balance-amount" id="wallet-balance">0</div>
+            </div>
+            
+            <h3>Redeem Options</h3>
+            <div class="redeem-options">
+                <div class="redeem-option" data-amount="5" data-points="3000">
+                    <div class="redeem-amount">₹5</div>
+                    <div class="redeem-points">3000 Points</div>
+                </div>
+                <div class="redeem-option" data-amount="10" data-points="5000">
+                    <div class="redeem-amount">₹10</div>
+                    <div class="redeem-points">5000 Points</div>
+                </div>
+                <div class="redeem-option" data-amount="20" data-points="10000">
+                    <div class="redeem-amount">₹20</div>
+                    <div class="redeem-points">10000 Points</div>
+                </div>
+                <div class="redeem-option" data-amount="30" data-points="20000">
+                    <div class="redeem-amount">₹30</div>
+                    <div class="redeem-points">20000 Points</div>
+                </div>
+                <div class="redeem-option" data-amount="40" data-points="30000">
+                    <div class="redeem-amount">₹40</div>
+                    <div class="redeem-points">30000 Points</div>
+                </div>
+                <div class="redeem-option" data-amount="50" data-points="40000">
+                    <div class="redeem-amount">₹50</div>
+                    <div class="redeem-points">40000 Points</div>
+                </div>
+            </div>
+            
+            <div class="withdrawal-form">
+                <h3 class="form-title">Withdrawal Request</h3>
+                <div class="form-group">
+                    <label for="withdrawal-method">Withdrawal Method</label>
+                    <select id="withdrawal-method">
+                        <option value="upi">UPI Transfer</option>
+                        <option value="google-play">Google Play Redeem Code</option>
+                    </select>
+                </div>
+                <div class="form-group" id="upi-field">
+                    <label for="upi-id">UPI ID</label>
+                    <input type="text" id="upi-id" placeholder="yourname@upi">
+                </div>
+                <div class="form-group">
+                    <label for="withdrawal-amount">Amount</label>
+                    <input type="text" id="withdrawal-amount" placeholder="₹5" readonly>
+                </div>
+                <button class="submit-btn" id="withdrawal-btn" disabled>Submit Withdrawal Request</button>
+                <p style="text-align: center; margin-top: 15px; color: #636e72; font-size: 0.85rem;">
+                    <i class="fas fa-info-circle"></i> Only 1 withdrawal allowed per day
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Result Popup -->
+    <div class="result-popup" id="result-popup">
+        <h2 class="result-title">Congratulations!</h2>
+        <p>You won</p>
+        <div class="result-points" id="result-points">20 Points</div>
+        <p>Hypa Points</p>
+        <button class="close-popup" id="close-popup">Continue</button>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-tab="spin-section">
+            <div class="nav-icon"><i class="fas fa-sync-alt"></i></div>
+            <div class="nav-text">Spin</div>
+        </div>
+        <div class="nav-item" data-tab="referral-section">
+            <div class="nav-icon"><i class="fas fa-users"></i></div>
+            <div class="nav-text">Referral</div>
+        </div>
+        <div class="nav-item" data-tab="wallet-section">
+            <div class="nav-icon"><i class="fas fa-wallet"></i></div>
+            <div class="nav-text">Wallet</div>
+        </div>
+    </nav>
+
+    <!-- Footer -->
+    <footer>
+        <p>2025 Spin2Earn | All Rights Reserved</p>
+    </footer>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDW79e_zlgBU3hMYyotx0e-X2mlpnNpRqw",
+            authDomain: "spin2earn-ce21d.firebaseapp.com",
+            databaseURL: "https://spin2earn-ce21d-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "spin2earn-ce21d",
+            storageBucket: "spin2earn-ce21d.firebasestorage.app",
+            messagingSenderId: "453937952363",
+            appId: "1:453937952363:web:abc3f469fd2d514cb8a32e",
+            measurementId: "G-NK7VJ1GCGW"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const analytics = firebase.analytics();
+        
+        // DOM Elements
+        const splashScreen = document.getElementById('splash-screen');
+        const loginModal = document.getElementById('login-modal');
+        const closeLogin = document.getElementById('close-login');
+        const googleLogin = document.getElementById('google-login');
+        const emailLogin = document.getElementById('email-login');
+        const guestLogin = document.getElementById('guest-login');
+        const pointsDisplay = document.getElementById('points-display');
+        const giftBox = document.getElementById('gift-box');
+        const giftTimer = document.getElementById('gift-timer');
+        const userAvatar = document.getElementById('user-avatar');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const logoutBtn = document.getElementById('logout-btn');
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spin-btn');
+        const resultPopup = document.getElementById('result-popup');
+        const resultPoints = document.getElementById('result-points');
+        const closePopup = document.getElementById('close-popup');
+        const referralCode = document.getElementById('referral-code');
+        const copyBtn = document.getElementById('copy-btn');
+        const referralCount = document.getElementById('referral-count');
+        const referralEarnings = document.getElementById('referral-earnings');
+        const walletBalance = document.getElementById('wallet-balance');
+        const redeemOptions = document.querySelectorAll('.redeem-option');
+        const withdrawalMethod = document.getElementById('withdrawal-method');
+        const upiField = document.getElementById('upi-field');
+        const withdrawalAmount = document.getElementById('withdrawal-amount');
+        const withdrawalBtn = document.getElementById('withdrawal-btn');
+        const navItems = document.querySelectorAll('.nav-item');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const notification = document.getElementById('notification');
+        
+        // App State
+        let userPoints = 0;
+        let spinInProgress = false;
+        let selectedRedeemAmount = 5;
+        let selectedRedeemPoints = 3000;
+        let isLoggedIn = false;
+        let giftAvailable = false;
+        let currentUser = null;
+        let userRef = null;
+        
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide splash screen after 3 seconds
+            setTimeout(() => {
+                splashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                }, 500);
+            }, 3000);
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Initialize UI state
+            updatePointsDisplay();
+            withdrawalAmount.value = `₹${selectedRedeemAmount}`;
+            
+            // Check if user is already logged in
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in
+                    currentUser = user;
+                    isLoggedIn = true;
+                    userRef = database.ref('users/' + user.uid);
+                    
+                    // Load user data from Firebase
+                    userRef.once('value').then((snapshot) => {
+                        const userData = snapshot.val();
+                        if (userData) {
+                            userPoints = userData.points || 0;
+                            updatePointsDisplay();
+                            
+                            // Set up real-time listener for points
+                            userRef.on('value', (snapshot) => {
+                                const data = snapshot.val();
+                                if (data && data.points !== undefined) {
+                                    userPoints = data.points;
+                                    updatePointsDisplay();
+                                }
+                            });
+                            
+                            // Update UI with user info
+                            userAvatar.textContent = user.displayName ? 
+                                user.displayName.charAt(0).toUpperCase() : 
+                                (user.email ? user.email.charAt(0).toUpperCase() : 'U');
+                            
+                            // Check if gift is available
+                            if (userData.lastGiftTime) {
+                                const lastGiftTime = new Date(userData.lastGiftTime);
+                                const now = new Date();
+                                const diffHours = (now - lastGiftTime) / (1000 * 60 * 60);
+                                
+                                if (diffHours < 24) {
+                                    giftBox.classList.add('disabled');
+                                    giftAvailable = false;
+                                    // Start timer for remaining time
+                                    startGiftTimer(24 - Math.floor(diffHours));
+                                } else {
+                                    giftBox.classList.remove('disabled');
+                                    giftAvailable = true;
+                                }
+                            } else {
+                                giftBox.classList.remove('disabled');
+                                giftAvailable = true;
+                            }
+                            
+                            // Update referral data
+                            if (userData.referrals) {
+                                referralCount.textContent = Object.keys(userData.referrals).length;
+                                referralEarnings.textContent = Object.keys(userData.referrals).length * 100;
+                            }
+                            
+                            // Generate referral code if not exists
+                            if (!userData.referralCode) {
+                                const code = generateReferralCode();
+                                userRef.update({ referralCode: code });
+                                referralCode.textContent = code;
+                            } else {
+                                referralCode.textContent = userData.referralCode;
+                            }
+                        } else {
+                            // First time user - initialize data
+                            const code = generateReferralCode();
+                            userRef.set({
+                                points: 0,
+                                referralCode: code,
+                                referrals: {},
+                                lastGiftTime: null
+                            });
+                            referralCode.textContent = code;
+                        }
+                    });
+                    
+                    // Hide login modal
+                    loginModal.classList.remove('show');
+                } else {
+                    // User is signed out
+                    isLoggedIn = false;
+                    currentUser = null;
+                    userRef = null;
+                    // Show login modal after splash screen
+                    setTimeout(() => {
+                        loginModal.classList.add('show');
+                    }, 500);
+                }
+                
+                updateFeatureAccess();
+            });
+        });
+        
+        function setupEventListeners() {
+            // Login modal
+            closeLogin.addEventListener('click', () => {
+                loginModal.classList.remove('show');
+            });
+            
+            googleLogin.addEventListener('click', () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        // User signed in successfully
+                        showNotification('Successfully signed in with Google', 'success');
+                    })
+                    .catch((error) => {
+                        console.error('Google login error:', error);
+                        showNotification('Failed to sign in with Google', 'error');
+                    });
+            });
+            
+            emailLogin.addEventListener('click', () => {
+                // Simple email/password auth for demo
+                const email = prompt('Enter your email:');
+                if (email) {
+                    const password = prompt('Enter a password:');
+                    if (password) {
+                        auth.createUserWithEmailAndPassword(email, password)
+                            .then((userCredential) => {
+                                // User created and signed in
+                                showNotification('Account created successfully', 'success');
+                            })
+                            .catch((error) => {
+                                // If user already exists, try to sign in
+                                if (error.code === 'auth/email-already-in-use') {
+                                    auth.signInWithEmailAndPassword(email, password)
+                                        .then((userCredential) => {
+                                            // User signed in
+                                            showNotification('Successfully signed in', 'success');
+                                        })
+                                        .catch((error) => {
+                                            console.error('Email login error:', error);
+                                            showNotification('Failed to sign in with email', 'error');
+                                        });
+                                } else {
+                                    console.error('Email signup error:', error);
+                                    showNotification('Failed to create account', 'error');
+                                }
+                            });
+                    }
+                }
+            });
+            
+            guestLogin.addEventListener('click', () => {
+                // Anonymous auth for guest users
+                auth.signInAnonymously()
+                    .then((userCredential) => {
+                        showNotification('Signed in as guest', 'success');
+                    })
+                    .catch((error) => {
+                        console.error('Anonymous login error:', error);
+                        showNotification('Failed to sign in as guest', 'error');
+                    });
+            });
+            
+            // User menu
+            userAvatar.addEventListener('click', () => {
+                if (isLoggedIn) {
+                    dropdownMenu.classList.toggle('show');
+                } else {
+                    loginModal.classList.add('show');
+                }
+            });
+            
+            logoutBtn.addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    showNotification('You have been logged out', 'success');
+                }).catch((error) => {
+                    console.error('Logout error:', error);
+                });
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!userAvatar.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
+            
+            // Spin button
+            spinBtn.addEventListener('click', startSpin);
+            
+            // Close popup
+            closePopup.addEventListener('click', () => {
+                resultPopup.classList.remove('show');
+            });
+            
+            // Copy referral code
+            copyBtn.addEventListener('click', () => {
+                if (!isLoggedIn) {
+                    showNotification('Please log in to copy referral code', 'error');
+                    loginModal.classList.add('show');
+                    return;
+                }
+                
+                navigator.clipboard.writeText(referralCode.textContent)
+                    .then(() => {
+                        copyBtn.textContent = 'Copied!';
+                        copyBtn.classList.add('copied');
+                        setTimeout(() => {
+                            copyBtn.textContent = 'Copy Referral Code';
+                            copyBtn.classList.remove('copied');
+                        }, 2000);
+                        showNotification('Referral code copied to clipboard', 'success');
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        showNotification('Failed to copy referral code', 'error');
+                    });
+            });
+            
+            // Gift box
+            giftBox.addEventListener('click', openGiftBox);
+            
+            // Redeem options
+            redeemOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    if (!isLoggedIn) {
+                        showNotification('Please log in to select redemption options', 'error');
+                        loginModal.classList.add('show');
+                        return;
+                    }
+                    
+                    // Remove selected class from all options
+                    redeemOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to selected option
+                    option.classList.add('selected');
+                    
+                    // Update selected amount
+                    selectedRedeemAmount = option.getAttribute('data-amount');
+                    selectedRedeemPoints = option.getAttribute('data-points');
+                    withdrawalAmount.value = `₹${selectedRedeemAmount}`;
+                });
+            });
+            
+            // Withdrawal method change
+            withdrawalMethod.addEventListener('change', () => {
+                if (withdrawalMethod.value === 'upi') {
+                    upiField.style.display = 'block';
+                } else {
+                    upiField.style.display = 'none';
+                }
+            });
+            
+            // Withdrawal request
+            withdrawalBtn.addEventListener('click', submitWithdrawal);
+            
+            // Navigation
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const tabId = item.getAttribute('data-tab');
+                    
+                    // Update active nav item
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Show corresponding tab content
+                    tabContents.forEach(tab => tab.classList.remove('active'));
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+        
+        function updateFeatureAccess() {
+            if (isLoggedIn) {
+                spinBtn.disabled = false;
+                copyBtn.disabled = false;
+                withdrawalBtn.disabled = false;
+                if (giftAvailable) {
+                    giftBox.classList.remove('disabled');
+                }
+            } else {
+                spinBtn.disabled = true;
+                copyBtn.disabled = true;
+                withdrawalBtn.disabled = true;
+                giftBox.classList.add('disabled');
+                giftAvailable = false;
+            }
+        }
+        
+        function startSpin() {
+            if (spinInProgress) return;
+            if (!isLoggedIn) {
+                showNotification('Please log in to spin the wheel', 'error');
+                loginModal.classList.add('show');
+                return;
+            }
+            
+            spinInProgress = true;
+            spinBtn.disabled = true;
+            
+            // In a real app, show an ad here before spinning
+            // For demo, we'll simulate ad with a timeout
+            showNotification('Showing advertisement...', 'success');
+            
+            setTimeout(() => {
+                // Generate random result
+                const results = [
+                    { text: "20 Points", value: 20, color: "#ff7675" },
+                    { text: "40 Points", value: 40, color: "#74b9ff" },
+                    { text: "60 Points", value: 60, color: "#55efc4" },
+                    { text: "80 Points", value: 80, color: "#ffeaa7" },
+                    { text: "100 Points", value: 100, color: "#a29bfe" },
+                    { text: "Try Again", value: 0, color: "#fd79a8" }
+                ];
+                
+                const randomIndex = Math.floor(Math.random() * results.length);
+                const result = results[randomIndex];
+                
+                // Calculate rotation for the wheel (each segment is 60 degrees)
+                const segmentAngle = 60;
+                const extraRotation = 5 * 360; // 5 full rotations for effect
+                const targetRotation = extraRotation + (randomIndex * segmentAngle) + (Math.random() * segmentAngle);
+                
+                // Apply rotation to wheel
+                wheel.style.transform = `rotate(${targetRotation}deg)`;
+                wheel.classList.add('wheel-spinning');
+                
+                // Show result after animation completes
+                setTimeout(() => {
+                    wheel.classList.remove('wheel-spinning');
+                    
+                    if (result.value > 0) {
+                        // Update points in Firebase
+                        const newPoints = userPoints + result.value;
+                        userRef.update({ points: newPoints })
+                            .then(() => {
+                                // Show result popup
+                                resultPoints.textContent = result.text;
+                                resultPopup.classList.add('show');
+                                showNotification(`You won ${result.text}!`, 'success');
+                            })
+                            .catch((error) => {
+                                console.error('Error updating points:', error);
+                                showNotification('Error updating points', 'error');
+                            });
+                    } else {
+                        // Try again - no points awarded
+                        showNotification("Try Again! Better luck next time.", 'error');
+                    }
+                    
+                    spinInProgress = false;
+                    spinBtn.disabled = false;
+                }, 3000);
+            }, 1500); // Simulated ad delay
+        }
+        
+        function openGiftBox() {
+            if (!isLoggedIn) {
+                showNotification('Please log in to open the gift box', 'error');
+                loginModal.classList.add('show');
+                return;
+            }
+            
+            if (giftBox.classList.contains('disabled')) return;
+            
+            // In a real app, show an ad here before opening gift
+            // For demo, we'll simulate ad with a timeout
+            showNotification('Showing advertisement...', 'success');
+            
+            setTimeout(() => {
+                // Random points: 20 or 40
+                const giftPoints = Math.random() > 0.5 ? 20 : 40;
+                
+                // Update points in Firebase and set last gift time
+                const newPoints = userPoints + giftPoints;
+                const now = new Date().toISOString();
+                
+                userRef.update({ 
+                    points: newPoints,
+                    lastGiftTime: now
+                })
+                .then(() => {
+                    // Show result
+                    resultPoints.textContent = `${giftPoints} Points`;
+                    resultPopup.classList.add('show');
+                    showNotification(`You received ${giftPoints} points from the gift box!`, 'success');
+                    
+                    // Disable gift box for 24 hours
+                    giftBox.classList.add('disabled');
+                    giftAvailable = false;
+                    startGiftTimer(24);
+                })
+                .catch((error) => {
+                    console.error('Error updating gift points:', error);
+                    showNotification('Error opening gift box', 'error');
+                });
+            }, 1500); // Simulated ad delay
+        }
+        
+        function startGiftTimer(hours) {
+            let remainingHours = hours;
+            let minutes = 0;
+            let seconds = 0;
+            
+            const updateTimer = () => {
+                if (remainingHours === 0 && minutes === 0 && seconds === 0) {
+                    giftBox.classList.remove('disabled');
+                    giftAvailable = true;
+                    giftTimer.textContent = "🎁";
+                    showNotification('Gift box is available again!', 'success');
+                    return;
+                }
+                
+                if (seconds === 0) {
+                    if (minutes === 0) {
+                        remainingHours--;
+                        minutes = 59;
+                    } else {
+                        minutes--;
+                    }
+                    seconds = 59;
+                } else {
+                    seconds--;
+                }
+                
+                // Format timer display
+                if (remainingHours > 0) {
+                    giftTimer.textContent = `${remainingHours}h`;
+                } else if (minutes > 0) {
+                    giftTimer.textContent = `${minutes}m`;
+                } else {
+                    giftTimer.textContent = `${seconds}s`;
+                }
+                
+                setTimeout(updateTimer, 1000);
+            };
+            
+            updateTimer();
+        }
+        
+        function updatePointsDisplay() {
+            pointsDisplay.textContent = `${userPoints} Hypa Points`;
+            walletBalance.textContent = userPoints;
+        }
+        
+        function submitWithdrawal() {
+            if (!isLoggedIn) {
+                showNotification('Please log in to submit a withdrawal', 'error');
+                loginModal.classList.add('show');
+                return;
+            }
+            
+            if (userPoints < selectedRedeemPoints) {
+                showNotification(`You need at least ${selectedRedeemPoints} points to redeem ₹${selectedRedeemAmount}`, 'error');
+                return;
+            }
+            
+            const method = withdrawalMethod.value;
+            const upiId = document.getElementById('upi-id').value;
+            
+            if (method === 'upi' && !upiId) {
+                showNotification('Please enter your UPI ID', 'error');
+                return;
+            }
+            
+            // Create withdrawal request in Firebase
+            const withdrawalRef = database.ref('withdrawals').push();
+            const withdrawalData = {
+                userId: currentUser.uid,
+                amount: selectedRedeemAmount,
+                points: selectedRedeemPoints,
+                method: method,
+                upiId: method === 'upi' ? upiId : null,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            };
+            
+            withdrawalRef.set(withdrawalData)
+                .then(() => {
+                    // Deduct points
+                    const newPoints = userPoints - selectedRedeemPoints;
+                    userRef.update({ points: newPoints })
+                        .then(() => {
+                            showNotification(`Withdrawal request submitted for ₹${selectedRedeemAmount}. It will be processed within 24 hours.`, 'success');
+                            
+                            // Reset form
+                            document.getElementById('upi-id').value = '';
+                            redeemOptions.forEach(opt => opt.classList.remove('selected'));
+                            selectedRedeemAmount = 5;
+                            selectedRedeemPoints = 3000;
+                            withdrawalAmount.value = `₹${selectedRedeemAmount}`;
+                        })
+                        .catch((error) => {
+                            console.error('Error deducting points:', error);
+                            showNotification('Error processing withdrawal', 'error');
+                        });
+                })
+                .catch((error) => {
+                    console.error('Error submitting withdrawal:', error);
+                    showNotification('Error submitting withdrawal request', 'error');
+                });
+        }
+        
+        function generateReferralCode() {
+            return 'SPIN' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+        
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            const notificationText = notification.querySelector('.notification-text');
+            const notificationIcon = notification.querySelector('.notification-icon');
+            
+            notificationText.textContent = message;
+            notification.className = 'notification';
+            notification.classList.add(type);
+            
+            if (type === 'success') {
+                notificationIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            } else {
+                notificationIcon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
